@@ -80,14 +80,28 @@ resource "aws_iam_role_policy" "pipeline_policy" {
   })
 }
 
-# CodePipeline
+# CodePipeline V2
 resource "aws_codepipeline" "pipeline" {
-  name     = "${var.project_name}-pipeline"
-  role_arn = aws_iam_role.pipeline_role.arn
+  name          = "${var.project_name}-pipeline"
+  role_arn      = aws_iam_role.pipeline_role.arn
+  pipeline_type = "V2" # <--- OBRIGATÓRIO PARA USAR CODESTAR CONNECTIONS ATUALMENTE
 
   artifact_store {
     location = aws_s3_bucket.pipeline_artifacts.bucket
     type     = "S3"
+  }
+
+  # Configuração de Gatilho (Trigger) para Pipeline V2
+  trigger {
+    provider_type = "CodeStarSourceConnection"
+    git_configuration {
+      source_action_name = "Source"
+      push {
+        branches {
+          includes = ["main"]
+        }
+      }
+    }
   }
 
   stage {
@@ -103,6 +117,7 @@ resource "aws_codepipeline" "pipeline" {
         ConnectionArn    = var.github_connection_arn
         FullRepositoryId = var.github_repo_id
         BranchName       = "main"
+        # DetectChanges = false  <-- Na V2, o controle é feito pelo bloco 'trigger' acima
       }
     }
   }
@@ -138,3 +153,5 @@ resource "aws_codepipeline" "pipeline" {
     }
   }
 }
+
+# Restante do código (S3, Roles, CodeBuild) permanece o mesmo que você já tem...
