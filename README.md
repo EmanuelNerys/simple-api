@@ -1,78 +1,62 @@
-# 🚀 Simple API - Desafio DevOps (AWS, Terraform & CI/CD)
+Este repositório contém a entrega do desafio técnico de provisionamento de uma API Node.js conectada a um banco de dados PostgreSQL, executada de forma escalável na AWS.
 
-Este repositório contém a solução para o desafio de provisionamento e disponibilização pública de uma API Node.js conectada a um banco de dados PostgreSQL na nuvem AWS. 
-
-A solução foi desenvolvida utilizando as melhores práticas de **Infraestrutura como Código (IaC)**, **Segurança em Camadas** e **Automação Total de Deploy (CI/CD)**.
-
----
-
-## 🏛️ Arquitetura da Solução
-
-A infraestrutura foi desenhada para ser resiliente, segura e escalável, utilizando uma abordagem modularizada no Terraform:
-
-* **Networking (VPC Própria):**
-    * Arquitetura de subnets segregadas (Públicas e Privadas) em múltiplas zonas de disponibilidade (Multi-AZ).
-    * **Internet Gateway** para saída de tráfego público e **NAT Gateway** para permitir que recursos privados (API/Banco) acessem a internet com segurança.
-* **Compute (ECS Fargate):**
-    * Orquestração de containers serverless (sem necessidade de gerenciar instâncias EC2).
-    * **Application Load Balancer (ALB)** para distribuição de tráfego e exposição da API na porta 80.
-* **Database (RDS PostgreSQL):**
-    * Banco de dados gerenciado em subnet privada, inacessível pela internet.
-    * Configuração de Multi-AZ para alta disponibilidade.
-* **CI/CD (AWS CodePipeline V2):**
-    * Integração nativa com GitHub via CodeStar Connections.
-    * Build automatizado via CodeBuild (Docker Push para ECR).
-    * Deploy automático (Rolling Update) no ECS após o sucesso do Build.
+## 🌐 Endereço da API (Deploy Ativo)
+A aplicação pode ser acessada publicamente através do DNS do Load Balancer:
+👉 **URL:** [http://api-alb-1269839128.us-east-1.elb.amazonaws.com](http://api-alb-1269839128.us-east-1.elb.amazonaws.com)
 
 ---
 
-## 🛠️ Tecnologias e Diferenciais Entregues
+## 🏗️ Arquitetura da Solução
 
-| Requisito | Solução Implementada | Status |
-| :--- | :--- | :--- |
-| **Containerização** | Docker com Dockerfile otimizado | ✅ |
-| **Nova VPC** | VPC customizada com isolamento de rede | ✅ |
-| **Hospedagem** | AWS ECS Fargate (Serverless) | ✅ |
-| **Banco de Dados** | **Diferencial:** AWS RDS PostgreSQL | ✅ |
-| **IaC** | **Diferencial:** 100% Terraform (Modularizado) | ✅ |
-| **Pipeline CI/CD** | AWS CodePipeline (GitHub -> Build -> ECS) | ✅ |
-| **Boas Práticas** | Multi-AZ, Camadas Privadas, NAT Gateway | ✅ |
+A infraestrutura foi desenhada seguindo o modelo de **camadas**, garantindo segurança e alta disponibilidade.
+
+* **VPC Customizada:** Criação de uma rede isolada com Subnets Públicas e Privadas em múltiplas zonas de disponibilidade (AZs).
+* **ECS Fargate (Orquestração):** A aplicação roda em containers utilizando um serviço Serverless, eliminando a necessidade de gerenciar instâncias EC2.
+* **Amazon RDS (PostgreSQL):** Banco de dados gerenciado, isolado em subnets privadas, acessível apenas pela aplicação.
+* **Application Load Balancer (ALB):** Responsável por receber as requisições externas e distribuir o tráfego entre as instâncias da API (Tasks).
+* **Segurança:** Implementação de Security Groups restritivos, garantindo que o banco de dados só receba conexões vindas do serviço da API.
 
 ---
 
-## 📂 Estrutura do Projeto Terraform
+## 🛠️ Tecnologias Utilizadas
 
-A infraestrutura foi organizada em módulos para facilitar a manutenção e reutilização de código:
+| Ferramenta | Utilização |
+| :--- | :--- |
+| **Terraform** | Infraestrutura como Código (IaC) |
+| **Docker** | Containerização da aplicação |
+| **Amazon ECS** | Orquestração de containers (Fargate) |
+| **Amazon RDS** | Banco de dados PostgreSQL gerenciado |
+| **Amazon ECR** | Registro de imagens Docker |
+| **GitHub Actions** | Pipeline de CI/CD para deploy automático |
 
-```text
-terraform/
-├── modules/
-│   ├── networking/   # VPC, Subnets, IGW, NAT, Route Tables
-│   ├── database/     # RDS Instance, Subnet Groups, Security Groups
-│   ├── ecs/          # Cluster, Service, Task Definition, ALB
-│   ├── ecr/          # Container Registry
-│   └── pipeline/     # CodePipeline, CodeBuild, Roles IAM
-├── main.tf           # Orquestração principal dos módulos
-├── variables.tf      # Definição de variáveis globais
-└── outputs.tf        # Exposição da URL final da API
+---
 
-Como Acessar a Aplicação
-A API está disponível publicamente através do DNS do Load Balancer:
+## 🚀 Fluxo de CI/CD
 
-🔗 URL da API: SUBSTITUA_PELA_SUA_URL_AQUI
+A pipeline de integração e entrega contínua foi configurada para que, a cada novo commit:
+1. O **Dockerfile** seja buildado.
+2. A imagem seja enviada para o **Amazon ECR**.
+3. O **Amazon ECS** realize um *Rolling Update*, substituindo as tarefas antigas pelas novas sem causar indisponibilidade (Zero Downtime).
 
-Nota: O deploy é realizado automaticamente a cada git push na branch main.
+---
 
-⚙️ Instruções para Deploy (IaC)
-Caso deseje replicar este ambiente:
+## 📁 Como executar este projeto localmente
 
-Configure suas credenciais AWS e a conexão com o GitHub.
+### Pré-requisitos:
+* AWS CLI configurado
+* Terraform instalado
 
-Inicialize o Terraform:
+### Passo a passo:
+1. Clone o repositório:
+   ```bash
+   git clone [https://github.com/SEU_USUARIO/simple-api.git](https://github.com/SEU_USUARIO/simple-api.git)
+
+   Inicialize o Terraform:
 
 Bash
 terraform init
-Aplique a infraestrutura:
+Planeje e aplique a infraestrutura:
 
 Bash
-terraform apply -auto-approve
+terraform plan
+terraform apply

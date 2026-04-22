@@ -119,7 +119,7 @@ resource "aws_lb" "main" {
 }
 
 resource "aws_lb_target_group" "api" {
-  name        = "api-tg"
+  name        = "aapi-tg-v2"
   port        = 3000
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
